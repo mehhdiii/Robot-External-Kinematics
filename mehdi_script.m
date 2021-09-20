@@ -1,43 +1,49 @@
 clc;close all 
-N = 500; 
+N = 500; Ts = 2*pi/N;
 t = linspace(-pi, pi, N); 
 
 x = 8*(sin(t)).^3; 
 y = 8*(sin(2*t)).^3; 
 
-vx = [0 diff(x, 1)] ;
-vy = [0 diff(y, 1)];
-ax = [0 diff(vx, 1)];
-ay = [0 diff(vy, 1)];
+vx = gradient(x, Ts);
+vy = gradient(y, Ts);
+ax = gradient(vx, Ts);
+ay = gradient(vy, Ts);
+
+%orientation
 phi = atan2(vy, vx); 
 
+%robot velocities
 v = vx.*cos(phi) + vy.*sin(phi); 
-omega = (vx.*ay - vy.*ax)./(vx.^2+vy.^2); 
+omega = (vx.*ay - vy.*ax)./(vx.^2 + vy.^2); 
 
+%Plotting
+figure()
 subplot(2, 1, 1)
-plot(v, 'linewidth', 4)
+plot(t,v, 'linewidth', 4) 
 xlabel('time',  'FontSize', 14)
 ylabel('velocity',  'FontSize', 14)
 title('Linear velocity', 'FontSize', 18)
+xlim([-pi  pi])
 
 subplot(2, 1, 2)
-plot(omega, 'linewidth', 4)
+plot(t,omega, 'linewidth', 4)
 title('Angular velocity', 'FontSize', 18)
 xlabel('time',  'FontSize', 14)
 ylabel('velocity',  'FontSize', 14)
-print -deps output
+xlim([-pi  pi])
+print -deps figures/task1_velocities 
 
+figure()
 h = figure; 
 axis tight manual % this ensures that getframe() returns a consistent size
-filename = 'task1.gif';
-
-for i=1:N      
+filename = 'figures/task1_trajectory.gif'; 
+plot(x, y, 'b', 'linewidth', 3)
+hold on 
+for i=1:10:N      
     plot(x(1:i), y(1:i), 'g-', 'linewidth', 6)
-    hold on 
-    plot(x, y, '-k', 'linewidth', 2)
-    legend('Original Trajectory', 'calculated Trajectory'); 
+    legend('Given Trajectory', "Robot's Path"); 
     drawnow; 
-    
     
     %create GIF
     frame = getframe(h); 
@@ -49,9 +55,6 @@ for i=1:N
     else 
       imwrite(imind,cm,filename,'gif','WriteMode','append'); 
     end 
-    
-    
-    
 
 end
 hold off
@@ -66,12 +69,9 @@ vL = zeros(1, N); vR = zeros(1, N);
 omegaL = zeros(1, N); omegaR = zeros(1, N); 
 
 
-%initialize resulting forward kinematic variables: 
-x_f = zeros(1, N); y_f = zeros(1, N); phi_f = zeros(1, N); 
+% %initialize resulting forward kinematic variables: 
+% x_f = zeros(1, N); y_f = zeros(1, N); phi_f = zeros(1, N); 
 
-h = figure;
-axis tight manual % this ensures that getframe() returns a consistent size
-filename = 'task2.gif';
 for n = 2:N-1
     %calculating inverse kinematics variables: 
     mu = 1/2*(sin(phi(n))*(y(n+1)-y(n))+cos(phi(n)*(x(n+1)-x(n))))...
@@ -99,56 +99,40 @@ for n = 2:N-1
     %model 
     x_f(n+1) = x_f(n) + (v(n)/omega(n))*(-sin(phi(n))+sin(phi(n)+omega(n)*T));
     y_f(n+1) = y_f(n) + (v(n)/omega(n))*(cos(phi(n))-cos(phi(n)+omega(n)*T));
-    
-    
-%     plot(x_f(1:i), y_f(1:i), 'g-', 'linewidth', 6)
-%     hold on 
-%     plot(x, y, '-k', 'linewidth', 2)
-%     legend('Original Trajectory', 'calculated Trajectory'); 
-%     drawnow; 
-%     
-%     
-%     %create GIF
-%     frame = getframe(h); 
-%     im = frame2im(frame); 
-%     [imind,cm] = rgb2ind(im,256); 
-%     % Write to the GIF File 
-%     if i == 1
-%       imwrite(imind,cm,filename,'gif', 'Loopcount',inf); 
-%     else 
-%       imwrite(imind,cm,filename,'gif','WriteMode','append'); 
-%     end 
-    
 
 end
-hold on 
-plot(x_f, y_f, 'g-', 'linewidth', 6)
-plot(x, y)
-axis([-9  9 -9  9])
-hold off 
-
 figure()
-subplot 411
-plot(vL, 'linewidth', 2)
+plot(x_f,y_f)
+figure()
+subplot 221
+plot(t,vL,'linewidth', 2)
 xlabel('time',  'FontSize', 10)
 ylabel('velocity',  'FontSize', 10)
 title('Left Wheel velocity', 'FontSize', 14)
-subplot 412
-plot(vR, 'linewidth', 2)
+xlim([-pi  pi])
+
+subplot 222
+plot(t,vR, 'linewidth', 2)
 xlabel('time',  'FontSize', 10)
 ylabel('velocity',  'FontSize', 10)
 title('Right Wheel velocity', 'FontSize', 14)
-subplot 413
-plot(omegaL, 'linewidth', 2)
+xlim([-pi  pi])
+
+subplot 223
+plot(t,omegaL, 'linewidth', 2)
 xlabel('time',  'FontSize', 10)
 ylabel('velocity',  'FontSize', 10)
+xlim([-pi  pi])
+
 title('Left Wheel angular velocity', 'FontSize', 14)
-subplot 414
-plot(omegaR, 'linewidth', 2)
+subplot 224
+plot(t,omegaR, 'linewidth', 2)
 xlabel('time',  'FontSize', 10)
 ylabel('velocity',  'FontSize', 10)
 title('Right Wheel angular velocity', 'FontSize', 14)
-print -deps task2
+xlim([-pi  pi])
+
+print -deps figures/task2
 
 
 
