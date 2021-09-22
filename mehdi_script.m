@@ -40,7 +40,7 @@ axis tight manual % this ensures that getframe() returns a consistent size
 filename = 'figures/task1_trajectory.gif'; 
 plot(x, y, 'b', 'linewidth', 3)
 hold on 
-for i=1:10:N      
+for i=1:1:N      
     plot(x(1:i), y(1:i), 'g-', 'linewidth', 6)
     legend('Given Trajectory', "Robot's Path"); 
     drawnow; 
